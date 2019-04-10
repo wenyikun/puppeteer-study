@@ -48,29 +48,44 @@ const axios = require('axios');
       fs.mkdirSync('./表情包');
     }
     fs.mkdirSync(`./表情包/${id}-${name}`);
-    for (let i = 0; i < srcs.length; i++) {
-      const res = await axios.get(srcs[i], {
-        responseType: 'stream'
-      }).then((res) => {
-        if (res.status === 200) {
-          const type = res.headers['content-type'];
-          let format = 'gif';
-          if (type === 'image/jpeg') {
-            format = 'jpg';
-          } else if (type === 'image/png') {
-            format = 'png';
+    const loadImg = (i) => {
+      return new Promise((resolve, reject) => {
+        axios.get(srcs[i], {
+          responseType: 'stream'
+        }).then((res) => {
+          if (res.status === 200) {
+            const type = res.headers['content-type'];
+            let format = 'gif';
+            if (type === 'image/jpeg') {
+              format = 'jpg';
+            } else if (type === 'image/png') {
+              format = 'png';
+            }
+            const writeStream = fs.createWriteStream(`./表情包/${id}-${name}/${i + 1}.${format}`);
+            res.data.pipe(writeStream);
+            writeStream.on('finish', () => {
+              resolve();
+            });
+            writeStream.on('error', () => {
+              resolve();
+            });
+          } else {
+            resolve();
           }
-          res.data.pipe(fs.createWriteStream(`./表情包/${id}-${name}/${i + 1}.${format}`));
-        }
-      }).catch((err) => {
-        console.log('err', srcs[i]);
+        }).catch((err) => {
+          console.log('err', srcs[i]);
+          resolve();
+        });
       });
+    };
+    for (let i = 0; i < srcs.length; i++) {
+      await loadImg(i);
     }
-    await page.waitFor(2000);
     await page.close();
   };
-  for (let i = 2304; i <= 5675; i++) {
+  for (let i = 249; i <= 5675; i++) {
     await getEmoji(i);
   }
+  await getEmoji(500);
   browser.close();
 })();
