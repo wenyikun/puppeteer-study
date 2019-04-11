@@ -83,7 +83,7 @@ const axios = require('axios');
     }
     await page.close();
   };
-  for (let i = 249; i <= 5675; i++) {
+  for (let i = 2303; i <= 5675; i++) {
     await getEmoji(i);
   }
   await getEmoji(500);
